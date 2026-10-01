@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Congregation Directory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F4EC;
+    --surface:#FFFFFF;
+    --ink:#2A2A22;
+    --ink-soft:#63604F;
+    --line:#E4DFCF;
+    --teal:#1C5D4A;
+    --teal-dark:#134737;
+    --gold:#B8860B;
+    --warn-bg:#FBEAE8;
+    --warn-ink:#8A2A22;
+    --warn-line:#E3B3AC;
+    --kids:#C46A22;
+    --youth:#8C2F2F;
+    --yp:#3B7A3E;
+    --ya:#1B6E75;
+    --adults:#2C5AAE;
+    --male:#2E75B6;
+    --female:#B3435A;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(42,42,34,0.06), 0 4px 14px rgba(42,42,34,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;color:var(--ink);}
+  a{color:var(--teal-dark);}
+  button{font-family:inherit;cursor:pointer;}
+  .app{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:236px;flex:0 0 236px;background:var(--teal-dark);color:#EFEAE0;
+    display:flex;flex-direction:column;padding:26px 18px;
+  }
+  .brand{margin-bottom:28px;padding:0 6px;}
+  .brand h1{color:#fff;font-size:20px;line-height:1.25;}
+  .brand p{margin:6px 0 0;font-size:12.5px;color:#B9CFC6;}
+  .nav{display:flex;flex-direction:column;gap:2px;flex:1;}
+  .nav button{
+    all:unset;padding:10px 12px;border-radius:8px;font-size:14px;color:#DCE6DF;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .nav button:hover{background:rgba(255,255,255,0.08);}
+  .nav button.active{background:#fff;color:var(--teal-dark);font-weight:600;}
+  .nav .count{font-size:12px;opacity:0.75;}
+  .nav button.active .count{opacity:0.55;}
+  .nav-group-label{font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#8FAA9E;margin:18px 6px 6px;}
+  .sidebar-foot{padding-top:14px;border-top:1px solid rgba(255,255,255,0.12);}
+  .sidebar-foot button{
+    all:unset;width:100%;padding:10px 12px;border-radius:8px;color:#EFEAE0;font-size:13.5px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .sidebar-foot button:hover{background:rgba(255,255,255,0.08);}
+
+  /* Main */
+  .main{flex:1;min-width:0;padding:28px 34px 60px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .topbar h2{font-size:24px;}
+  .topbar .sub{color:var(--ink-soft);font-size:13.5px;margin-top:4px;}
+  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .search{
+    border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px;
+    font-size:13.5px;width:230px;color:var(--ink);
+  }
+  .search:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .btn{
+    border:1px solid transparent;border-radius:8px;padding:9px 15px;font-size:13.5px;font-weight:600;
+  }
+  .btn-primary{background:var(--teal);color:#fff;}
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal-dark);}
+
+  /* Summary cards */
+  .cards{margin-bottom:24px;}
+  .cards-heading{font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);margin:0 0 10px;}
+  .cards-heading:not(:first-child){margin-top:22px;}
+  .cards-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);}
+  .card .num{font-family:'Fraunces',serif;font-size:26px;font-weight:600;}
+  .card .label{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .card.flag{border-color:var(--warn-line);background:var(--warn-bg);}
+  .card.flag .num{color:var(--warn-ink);}
+
+  /* Table */
+  .table-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;font-weight:600;font-size:11.5px;color:var(--ink-soft);
+    padding:10px 12px;border-bottom:1px solid var(--line);background:#FBFAF5;white-space:nowrap;
+  }
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FAF8F0;}
+  tbody tr.dup{background:var(--warn-bg);}
+  tbody tr.dup:hover{background:#F6DEDA;}
+  .name-cell{font-weight:600;}
+  .id-cell{color:var(--ink-soft);font-size:11.5px;}
+  .chip{display:inline-block;padding:3px 9px;border-radius:100px;font-size:11.5px;font-weight:600;color:#fff;white-space:nowrap;}
+  .chip.kids{background:var(--kids);} .chip.youth{background:var(--youth);}
+  .chip.yp{background:var(--yp);} .chip.ya{background:var(--ya);} .chip.adults{background:var(--adults);}
+  .chip.dep-sst{background:#B8860B;} .chip.dep-twb{background:#6A4C93;} .chip.dep-wt{background:#2E7D5B;}
+  .chip.dep-pm{background:#C2410C;} .chip.dep-pc{background:#1D4E89;} .chip.dep-paps{background:#7A1F3D;}
+  .chip.dep-twl{background:#4B5563;}
+  .chip.male{background:var(--male);} .chip.female{background:var(--female);}
+  .chip.status-notyet{background:#C9A227;} .chip.status-contacted{background:#2E75B6;} .chip.status-followedup{background:#6A4C93;} .chip.status-plugged{background:var(--teal);}
+  .chip.days-fresh{background:#3B7A3E;} .chip.days-warm{background:#C9A227;} .chip.days-due{background:#C46A22;} .chip.days-over{background:#B3435A;}
+  .chip.letter-yes{background:#3B7A3E;} .chip.letter-no{background:#B3435A;}
+  .checkbox-field label{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;}
+  .checkbox-field input{width:auto;}
+  .chip.empty{background:#D8D3C2;color:#6B6752;}
+  .dup-tag{display:inline-flex;align-items:center;gap:4px;color:var(--warn-ink);font-size:11.5px;font-weight:600;}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .icon-btn{
+    all:unset;padding:5px 8px;border-radius:6px;color:var(--ink-soft);font-size:12.5px;cursor:pointer;
+  }
+  .icon-btn:hover{background:#EFEAD9;color:var(--ink);}
+  .icon-btn.danger:hover{background:var(--warn-bg);color:var(--warn-ink);}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
+  .empty-state h3{margin-bottom:8px;color:var(--ink);}
+
+  .pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:12.5px;color:var(--ink-soft);}
+  .pagination .pg-btns{display:flex;gap:6px;}
+  .pagination button{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 10px;font-size:12.5px;}
+  .pagination button:disabled{opacity:0.4;cursor:not-allowed;}
+  .pagination button:not(:disabled):hover{border-color:var(--teal);}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(30,28,20,0.42);display:flex;align-items:center;justify-content:center;
+    padding:24px;z-index:50;
+  }
+  .hidden{display:none !important;}
+  .modal{
+    background:var(--surface);border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;
+    box-shadow:0 20px 50px rgba(20,20,14,0.25);
+  }
+  .modal-head{padding:20px 24px 4px;display:flex;justify-content:space-between;align-items:flex-start;}
+  .modal-head h3{font-size:19px;}
+  .modal-close{all:unset;cursor:pointer;color:var(--ink-soft);font-size:20px;padding:4px 8px;border-radius:6px;}
+  .modal-close:hover{background:#F0ECDF;}
+  .modal-body{padding:16px 24px 24px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .field-row-3{grid-template-columns:1fr 1fr 1fr;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font-size:13.5px;
+    font-family:inherit;color:var(--ink);background:#FEFDFA;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--teal);outline-offset:0;}
+  .dup-warning{
+    background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);
+    border-radius:8px;padding:11px 13px;font-size:13px;margin-bottom:14px;display:none;
+  }
+  .dup-warning.show{display:block;}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+  .import-textarea{width:100%;min-height:160px;border:1px solid var(--line);border-radius:7px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;}
+  .import-help{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5;}
+  .import-result{margin-top:14px;font-size:13px;padding:10px 12px;border-radius:8px;background:#EEF5EE;color:var(--teal-dark);display:none;}
+  .import-result.show{display:block;}
+
+  /* Auth / setup screens */
+  .gate{
+    position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;
+    padding:24px;z-index:100;
+  }
+  .gate-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;max-width:400px;width:100%;
+    padding:32px 30px;box-shadow:var(--shadow);}
+  .gate-card h1{font-size:22px;margin-bottom:6px;}
+  .gate-card .sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:22px;}
+  .gate-error{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);border-radius:8px;
+    padding:10px 12px;font-size:13px;margin-bottom:14px;display:none;}
+  .gate-error.show{display:block;}
+  .gate-switch{margin-top:16px;font-size:13px;color:var(--ink-soft);text-align:center;}
+  .gate-switch button{all:unset;color:var(--teal-dark);font-weight:600;cursor:pointer;}
+  .gate-loading{color:var(--ink-soft);font-size:13.5px;}
+  .setup-card{max-width:560px;}
+  .setup-card ol{padding-left:20px;margin:14px 0;}
+  .setup-card li{margin-bottom:10px;font-size:13.5px;line-height:1.55;}
+  .setup-card code{background:#F0ECDF;padding:1px 6px;border-radius:4px;font-size:12.5px;}
+  .user-badge{padding:10px 12px;font-size:12.5px;color:#B9CFC6;border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:8px;word-break:break-all;}
+  .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5CBF8E;margin-right:6px;}
+
+  @media (max-width: 820px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex:none;flex-direction:row;overflow-x:auto;padding:14px;align-items:center;gap:8px;}
+    .brand{margin-bottom:0;padding-right:10px;flex:0 0 auto;}
+    .brand p{display:none;}
+    .nav{flex-direction:row;flex:none;}
+    .nav-group-label{display:none;}
+    .sidebar-foot{border-top:none;padding-top:0;}
+    .main{padding:20px;}
+    .field-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Setup-needed screen (shown if Firebase config hasn't been filled in) -->
+<div class="gate hidden" id="setupGate">
+  <div class="gate-card setup-card">
+    <h1>One-time setup needed</h1>
+    <div class="sub">This copy of the app isn't connected to a database yet.</div>
+    <ol>
+      <li>Create a free project at <code>console.firebase.google.com</code>.</li>
+      <li>Enable <strong>Authentication → Email/Password</strong>.</li>
+      <li>Create a <strong>Firestore Database</strong>.</li>
+      <li>In Project settings → your apps, add a web app and copy the config object.</li>
+      <li>Paste it into the <code>firebaseConfig</code> section near the top of this file's code, in place of the placeholder values.</li>
+    </ol>
+    <div class="sub">Full walkthrough was provided alongside this file.</div>
+  </div>
+</div>
+
+<!-- Loading screen -->
+<div class="gate" id="loadingGate">
+  <div class="gate-loading">Loading...</div>
+</div>
+
+<!-- Sign in / Sign up screen -->
+<div class="gate hidden" id="authGate">
+  <div class="gate-card">
+    <h1 id="authTitle">Sign in</h1>
+    <div class="sub" id="authSub">Access the shared congregation directory.</div>
+    <div class="gate-error" id="authError"></div>
+    <form id="authForm">
+      <div class="field">
+        <label for="a_email">Email</label>
+        <input type="email" id="a_email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="a_password">Password</label>
+        <input type="password" id="a_password" required autocomplete="current-password" minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:6px;" id="authSubmit">Sign in</button>
+    </form>
+    <div class="gate-switch">
+      <span id="authSwitchText">Need an account?</span>
+      <button id="authSwitchBtn">Create one</button>
+    </div>
+  </div>
+</div>
+
+<div class="app hidden" id="appRoot">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Congregation Directory</h1>
+      <p><span class="sync-dot"></span>Synced across devices</p>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="user-badge" id="userBadge"></div>
+      <button id="importBtn">Import from spreadsheet</button>
+      <button id="signOutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="viewTitle">Dashboard</h2>
+        <div class="sub" id="viewSub">Live counts across the whole congregation.</div>
+      </div>
+      <div class="actions">
+        <input class="search" id="searchInput" type="text" placeholder="Search name, phone, email...">
+        <select class="search" id="sortSelect" style="width:auto;">
+          <option value="name">Sort: Alphabetical (A–Z)</option>
+          <option value="age">Sort: Age (youngest–oldest)</option>
+          <option value="ministry">Sort: Ministry</option>
+          <option value="department">Sort: Department</option>
+          <option value="newest">Sort: Newest added</option>
+          <option value="oldest">Sort: Oldest added</option>
+        </select>
+        <button class="btn btn-primary" id="addBtn">+ Add person</button>
+      </div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+      <table>
+        <thead>
+          <tr id="tableHeadRow">
+            <th>Name</th>
+            <th>Ministry</th>
+            <th>Gender</th>
+            <th>Birthday</th>
+            <th>Age</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Socials</th>
+            <th>Address</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state hidden">
+        <h3>No one here yet</h3>
+        <div>Add a person, or import your existing spreadsheet.</div>
+      </div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit modal -->
+<div class="overlay hidden" id="formOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="formTitle">Add person</h3>
+      <button class="modal-close" id="formClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="dup-warning" id="dupWarning"></div>
+      <form id="personForm">
+        <input type="hidden" id="f_id">
+        <div class="field-row">
+          <div class="field">
+            <label for="f_ministry">Ministry (age group)</label>
+            <select id="f_ministry">
+              <option value="">— Select —</option>
+              <option>Kids (4-12 y/o)</option>
+              <option>Youth (13-19 y/o)</option>
+              <option>Young Professionals (20-29 y/o)</option>
+              <option>Young Adults (30-39 y/o)</option>
+              <option>Adults (40 and above)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f_department">Department (serving team)</label>
+            <select id="f_department">
+              <option value="">— Select —</option>
+              <option>Sunday School Teachers</option>
+              <option>The Way Beyond</option>
+              <option>Worship Team</option>
+              <option>Promotion &amp; Marketing</option>
+              <option>Production &amp; CRTVS</option>
+              <option>PAPS</option>
+              <option>The Way Lifestyle</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f_name">Full name</label>
+          <input type="text" id="f_name" placeholder="Juan Dela Cruz">
+        </div>
+        <div class="field-row field-row-3">
+          <div class="field">
+            <label for="f_gender">Gender</label>
+            <select id="f_gender">
+              <option value="">— Select —</option>
+              <option>MALE</option>
+              <option>FEMALE</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f_birthday">Birthday</label>
+            <input type="date" id="f_birthday">
+          </div>
+          <div class="field">
+            <label for="f_age">Age</label>
+            <input type="text" id="f_age" readonly placeholder="—" style="background:#F0ECDF;color:var(--ink-soft);">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f_phone">Phone number</label>
+            <input type="text" id="f_phone" placeholder="0917-123-4567">
+          </div>
+          <div class="field">
+            <label for="f_email">Email address</label>
+            <input type="email" id="f_email" placeholder="name@email.com">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f_socials">Facebook link</label>
+          <input type="text" id="f_socials" placeholder="https://www.facebook.com/...">
+        </div>
+        <div class="field">
+          <label for="f_address">Address</label>
+          <input type="text" id="f_address" placeholder="123 Rizal St., Quezon City">
+        </div>
+        <div class="field checkbox-field">
+          <label><input type="checkbox" id="f_commitmentLetter"> Commitment letter on file</label>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="formCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="formSubmit">Save person</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit newcomer modal -->
+<div class="overlay hidden" id="newcomerFormOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="newcomerFormTitle">Add newcomer</h3>
+      <button class="modal-close" id="newcomerFormClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="newcomerForm">
+        <input type="hidden" id="nc_id">
+        <div class="field">
+          <label for="nc_name">Full name</label>
+          <input type="text" id="nc_name" placeholder="Juan Dela Cruz">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="nc_birthday">Birthday (optional)</label>
+            <input type="date" id="nc_birthday">
+          </div>
+          <div class="field">
+            <label for="nc_phone">Phone number</label>
+            <input type="text" id="nc_phone" placeholder="0917-123-4567">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="nc_socials">Facebook link (optional)</label>
+            <input type="text" id="nc_socials" placeholder="https://www.facebook.com/...">
+          </div>
+          <div class="field">
+            <label for="nc_email">Email address</label>
+            <input type="email" id="nc_email" placeholder="name@email.com">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="nc_visitDate">First visit date</label>
+            <input type="date" id="nc_visitDate">
+          </div>
+          <div class="field">
+            <label for="nc_ministry">Likely ministry (optional)</label>
+            <select id="nc_ministry">
+              <option value="">— Not sure yet —</option>
+              <option>Kids (4-12 y/o)</option>
+              <option>Youth (13-19 y/o)</option>
+              <option>Young Professionals (20-29 y/o)</option>
+              <option>Young Adults (30-39 y/o)</option>
+              <option>Adults (40 and above)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="nc_status">Follow-up status</label>
+          <select id="nc_status">
+            <option value="Not yet contacted">Not yet contacted</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Followed Up">Followed Up</option>
+            <option value="Plugged In">Plugged In — move to main database now</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="nc_notes">Notes</label>
+          <textarea id="nc_notes" rows="3" placeholder="How they heard about us, who invited them, prayer requests..."></textarea>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="newcomerFormCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="newcomerFormSubmit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="overlay hidden" id="importOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Import from spreadsheet</h3>
+      <button class="modal-close" id="importClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="import-help">
+        In your sheet, select columns <strong>Ministry through Address</strong> (skip Person ID and the
+        duplicate-check column), copy, and paste below. One row per person; the first row can be a header row —
+        it's detected and skipped automatically.
+      </div>
+      <textarea class="import-textarea" id="importText" placeholder="Ministry&#9;Name&#9;Gender&#9;Birthday&#9;Age&#9;Phone&#9;Email&#9;Department&#9;Socials&#9;Address"></textarea>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" id="importCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="importRun">Import rows</button>
+      </div>
+      <div class="import-result" id="importResult"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, query, where, onSnapshot, doc, setDoc, deleteDoc,
+  runTransaction, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+(async function(){
+  "use strict";
+
+  // ---------- Firebase config ----------
+  // Replace these placeholder values with the config object from
+  // Firebase Console → Project settings → Your apps → Web app.
+  var firebaseConfig = {
+    apiKey: "AIzaSyDoX9hDJjhQCunZM_eibgKUAWJ36hoji6A",
+    authDomain: "twc-database-7ae09.firebaseapp.com",
+    projectId: "twc-database-7ae09",
+    storageBucket: "twc-database-7ae09.firebasestorage.app",
+    messagingSenderId: "908408014918",
+    appId: "1:908408014918:web:ed816fcc70c2fff60aa247"
+  };
+
+  var setupGate = document.getElementById("setupGate");
+  var loadingGate = document.getElementById("loadingGate");
+  var authGate = document.getElementById("authGate");
+  var appRoot = document.getElementById("appRoot");
+
+  if(!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY"){
+    loadingGate.classList.add("hidden");
+    setupGate.classList.remove("hidden");
+    return;
+  }
+
+  var app = initializeApp(firebaseConfig);
+  var auth = getAuth(app);
+  var db = getFirestore(app);
+  var peopleCol = collection(db, "people");
+  var newcomersCol = collection(db, "newcomers");
+
+  var MINISTRIES = [
+    {key:"kids", label:"Kids (4-12 y/o)", cls:"kids", short:"Kids"},
+    {key:"youth", label:"Youth (13-19 y/o)", cls:"youth", short:"Youth"},
+    {key:"yp", label:"Young Professionals (20-29 y/o)", cls:"yp", short:"Young Professionals"},
+    {key:"ya", label:"Young Adults (30-39 y/o)", cls:"ya", short:"Young Adults"},
+    {key:"adults", label:"Adults (40 and above)", cls:"adults", short:"Adults"}
+  ];
+  var DEPARTMENTS = [
+    {key:"dep-sst", label:"Sunday School Teachers", cls:"dep-sst", short:"Sunday School Teachers"},
+    {key:"dep-twb", label:"The Way Beyond", cls:"dep-twb", short:"The Way Beyond"},
+    {key:"dep-wt", label:"Worship Team", cls:"dep-wt", short:"Worship Team"},
+    {key:"dep-pm", label:"Promotion & Marketing", cls:"dep-pm", short:"Promotion & Marketing"},
+    {key:"dep-pc", label:"Production & CRTVS", cls:"dep-pc", short:"Production & CRTVS"},
+    {key:"dep-paps", label:"PAPS", cls:"dep-paps", short:"PAPS"},
+    {key:"dep-twl", label:"The Way Lifestyle", cls:"dep-twl", short:"The Way Lifestyle"}
+  ];
+  var PAGE_SIZE = 50;
+
+  var people = [];
+  var newcomers = [];
+  var currentTab = "dashboard"; // dashboard | newpeople | all | <ministry key> | <department key>
+  var searchTerm = "";
+  var currentSort = "name";
+  var newcomerSort = "oldest";
+  var volunteerSort = "missing";
+  var currentPage = 1;
+  var editingId = null;
+  var editingNewcomerId = null;
+  var unsubscribePeople = null;
+  var unsubscribeNewcomers = null;
+  var promotionInFlight = {};
+  var AUTO_PROMOTE_DAYS = 90;
+
+  var el = {
+    nav: document.getElementById("nav"),
+    viewTitle: document.getElementById("viewTitle"),
+    viewSub: document.getElementById("viewSub"),
+    cards: document.getElementById("cards"),
+    tbody: document.getElementById("tbody"),
+    emptyState: document.getElementById("emptyState"),
+    pagination: document.getElementById("pagination"),
+    searchInput: document.getElementById("searchInput"),
+    sortSelect: document.getElementById("sortSelect"),
+    addBtn: document.getElementById("addBtn"),
+    importBtn: document.getElementById("importBtn"),
+    formOverlay: document.getElementById("formOverlay"),
+    formTitle: document.getElementById("formTitle"),
+    formClose: document.getElementById("formClose"),
+    formCancel: document.getElementById("formCancel"),
+    personForm: document.getElementById("personForm"),
+    dupWarning: document.getElementById("dupWarning"),
+    importOverlay: document.getElementById("importOverlay"),
+    importClose: document.getElementById("importClose"),
+    importCancel: document.getElementById("importCancel"),
+    importRun: document.getElementById("importRun"),
+    importText: document.getElementById("importText"),
+    importResult: document.getElementById("importResult"),
+    userBadge: document.getElementById("userBadge"),
+    signOutBtn: document.getElementById("signOutBtn"),
+    tableHeadRow: document.getElementById("tableHeadRow"),
+    newcomerFormOverlay: document.getElementById("newcomerFormOverlay"),
+    newcomerFormTitle: document.getElementById("newcomerFormTitle"),
+    newcomerFormClose: document.getElementById("newcomerFormClose"),
+    newcomerFormCancel: document.getElementById("newcomerFormCancel"),
+    newcomerForm: document.getElementById("newcomerForm")
+  };
+
+  // ---------- auth gating ----------
+  var authMode = "signin"; // signin | signup
+  var authForm = document.getElementById("authForm");
+  var authTitle = document.getElementById("authTitle");
+  var authSub = document.getElementById("authSub");
+  var authSubmit = document.getElementById("authSubmit");
+  var authError = document.getElementById("authError");
+  var authSwitchText = document.getElementById("authSwitchText");
+  var authSwitchBtn = document.getElementById("authSwitchBtn");
+
+  function setAuthMode(mode){
+    authMode = mode;
+    authError.classList.remove("show");
+    if(mode === "signin"){
+      authTitle.textContent = "Sign in";
+      authSub.textContent = "Access the shared congregation directory.";
+      authSubmit.textContent = "Sign in";
+      authSwitchText.textContent = "Need an account?";
+      authSwitchBtn.textContent = "Create one";
+    } else {
+      authTitle.textContent = "Create account";
+      authSub.textContent = "Set a password to join the shared directory.";
+      authSubmit.textContent = "Create account";
+      authSwitchText.textContent = "Already have an account?";
+      authSwitchBtn.textContent = "Sign in";
+    }
+  }
+  authSwitchBtn.addEventListener("click", function(){
+    setAuthMode(authMode === "signin" ? "signup" : "signin");
+  });
+
+  authForm.addEventListener("submit", async function(e){
+    e.preventDefault();
+    authError.classList.remove("show");
+    var email = document.getElementById("a_email").value.trim();
+    var pass = document.getElementById("a_password").value;
+    authSubmit.disabled = true;
+    try{
+      if(authMode === "signin"){
+        await signInWithEmailAndPassword(auth, email, pass);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, pass);
+      }
+    }catch(err){
+      authError.textContent = friendlyAuthError(err);
+      authError.classList.add("show");
+    }
+    authSubmit.disabled = false;
+  });
+
+  function friendlyAuthError(err){
+    var code = err && err.code || "";
+    if(code.indexOf("wrong-password")>-1 || code.indexOf("invalid-credential")>-1) return "Incorrect email or password.";
+    if(code.indexOf("user-not-found")>-1) return "No account with that email. Try creating one instead.";
+    if(code.indexOf("email-already-in-use")>-1) return "An account already exists for that email. Try signing in instead.";
+    if(code.indexOf("weak-password")>-1) return "Password should be at least 6 characters.";
+    if(code.indexOf("invalid-email")>-1) return "That doesn't look like a valid email address.";
+    return "Something went wrong. Please try again.";
+  }
+
+  el.signOutBtn.addEventListener("click", function(){ signOut(auth); });
+
+  onAuthStateChanged(auth, function(user){
+    loadingGate.classList.add("hidden");
+    if(user){
+      authGate.classList.add("hidden");
+      appRoot.classList.remove("hidden");
+      el.userBadge.textContent = user.email;
+      subscribeToPeople();
+      subscribeToNewcomers();
+    } else {
+      appRoot.classList.add("hidden");
+      authGate.classList.remove("hidden");
+      if(unsubscribePeople){ unsubscribePeople(); unsubscribePeople = null; }
+      if(unsubscribeNewcomers){ unsubscribeNewcomers(); unsubscribeNewcomers = null; }
+      people = [];
+      newcomers = [];
+    }
+  });
+
+  // ---------- live data sync ----------
+  function subscribeToPeople(){
+    if(unsubscribePeople) return;
+    unsubscribePeople = onSnapshot(peopleCol, function(snapshot){
+      people = snapshot.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      render();
+    }, function(err){
+      console.error("Sync error:", err);
+    });
+  }
+
+  function subscribeToNewcomers(){
+    if(unsubscribeNewcomers) return;
+    unsubscribeNewcomers = onSnapshot(newcomersCol, function(snapshot){
+      newcomers = snapshot.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      render();
+      checkAutoPromotions();
+    }, function(err){
+      console.error("Newcomers sync error:", err);
+    });
+  }
+
+  async function savePerson(data){
+    await setDoc(doc(db, "people", data.id), data);
+  }
+
+  async function removePerson(id){
+    await deleteDoc(doc(db, "people", id));
+  }
+
+  // atomically reserve `count` sequential friendly IDs, returns the starting number
+  async function reserveIdBlock(count){
+    var counterRef = doc(db, "meta", "counter");
+    var start = await runTransaction(db, async function(tx){
+      var snap = await tx.get(counterRef);
+      var current = snap.exists() ? (snap.data().lastId || 0) : 0;
+      tx.set(counterRef, { lastId: current + count }, { merge: true });
+      return current;
+    });
+    return start + 1;
+  }
+
+  // ---------- helpers ----------
+  function ministryInfo(label){
+    for(var i=0;i<MINISTRIES.length;i++){ if(MINISTRIES[i].label === label) return MINISTRIES[i]; }
+    return null;
+  }
+
+  function departmentInfo(label){
+    for(var i=0;i<DEPARTMENTS.length;i++){ if(DEPARTMENTS[i].label === label) return DEPARTMENTS[i]; }
+    return null;
+  }
+
+  function tabInfo(key){
+    var m = MINISTRIES.filter(function(x){return x.key===key;})[0];
+    if(m) return {type:"ministry", info:m};
+    var d = DEPARTMENTS.filter(function(x){return x.key===key;})[0];
+    if(d) return {type:"department", info:d};
+    return null;
+  }
+
+  function computeAge(birthday){
+    if(!birthday) return null;
+    var b = new Date(birthday + "T00:00:00");
+    if(isNaN(b.getTime())) return null;
+    var today = new Date();
+    var age = today.getFullYear() - b.getFullYear();
+    var m = today.getMonth() - b.getMonth();
+    if(m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+    return age;
+  }
+
+  function normalizedEmail(e){ return (e||"").trim().toLowerCase(); }
+  function normalizedName(n){ return (n||"").trim().toLowerCase().replace(/\s+/g," "); }
+
+  function findDuplicateOf(name, email, excludeId){
+    var em = normalizedEmail(email);
+    var nm = normalizedName(name);
+    if(!em || !nm) return null;
+    for(var i=0;i<people.length;i++){
+      var p = people[i];
+      if(p.id === excludeId) continue;
+      if(normalizedName(p.name) === nm && normalizedEmail(p.email) === em){
+        return p;
+      }
+    }
+    return null;
+  }
+
+  function computeDuplicateIds(){
+    var flagged = new Set();
+    for(var i=0;i<people.length;i++){
+      var a = people[i];
+      if(!a.email) continue;
+      for(var j=i+1;j<people.length;j++){
+        var b = people[j];
+        if(!b.email) continue;
+        if(normalizedName(a.name)===normalizedName(b.name) && normalizedEmail(a.email)===normalizedEmail(b.email) && normalizedName(a.name)){
+          flagged.add(a.id); flagged.add(b.id);
+        }
+      }
+    }
+    return flagged;
+  }
+
+  function escapeHtml(s){
+    return (s||"").replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function fmtDate(d){
+    if(!d) return "—";
+    var parts = d.split("-");
+    if(parts.length!==3) return d;
+    var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return months[parseInt(parts[1],10)-1] + " " + parseInt(parts[2],10) + ", " + parts[0];
+  }
+
+  // ---------- nav / summary ----------
+  function buildNav(){
+    var dupCount = computeDuplicateIds().size;
+    var counts = {all: people.length};
+    MINISTRIES.forEach(function(m){ counts[m.key]=0; });
+    DEPARTMENTS.forEach(function(d){ counts[d.key]=0; });
+    var noBday = 0;
+    var volunteerCount = 0;
+    var missingLetterCount = 0;
+    people.forEach(function(p){
+      var mi = ministryInfo(p.ministry);
+      if(mi) counts[mi.key] = (counts[mi.key]||0)+1;
+      var di = departmentInfo(p.department);
+      if(di) counts[di.key] = (counts[di.key]||0)+1;
+      if(!p.birthday) noBday++;
+      if(p.department){
+        volunteerCount++;
+        if(!p.commitmentLetter) missingLetterCount++;
+      }
+    });
+
+    var items = [
+      {key:"dashboard", label:"Dashboard"},
+      {key:"newpeople", label:"New People", count: newcomers.length},
+      {key:"all", label:"All people", count: counts.all},
+      {key:"volunteers", label:"Volunteers", count: volunteerCount}
+    ];
+    MINISTRIES.forEach(function(m){
+      items.push({key:m.key, label:m.short, count:counts[m.key]});
+    });
+
+    var html = "";
+    items.forEach(function(it){
+      var active = it.key === currentTab ? " active" : "";
+      var countHtml = (it.count !== undefined) ? '<span class="count">'+it.count+'</span>' : '';
+      html += '<button class="'+active+'" data-tab="'+it.key+'">'+it.label+countHtml+'</button>';
+    });
+    html += '<div class="nav-group-label">Departments</div>';
+    DEPARTMENTS.forEach(function(d){
+      var active = d.key === currentTab ? " active" : "";
+      html += '<button class="'+active+'" data-tab="'+d.key+'">'+d.short+'<span class="count">'+counts[d.key]+'</span></button>';
+    });
+    el.nav.innerHTML = html;
+    Array.prototype.forEach.call(el.nav.querySelectorAll("button"), function(btn){
+      btn.addEventListener("click", function(){
+        currentTab = btn.getAttribute("data-tab");
+        currentPage = 1;
+        render();
+      });
+    });
+
+    return {counts:counts, noBday:noBday, dupCount:dupCount, volunteerCount:volunteerCount, missingLetterCount:missingLetterCount};
+  }
+
+  function renderCards(stats){
+    if(currentTab !== "dashboard"){ el.cards.innerHTML=""; return; }
+    var overview = [
+      {label:"Total people", num: people.length + newcomers.length, flag:false},
+    ];
+    MINISTRIES.forEach(function(m){
+      overview.push({label:m.short, num: stats.counts[m.key]||0, flag:false});
+    });
+    overview.push({label:"No birthday on file", num: stats.noBday, flag:false});
+    overview.push({label:"Possible duplicates", num: stats.dupCount, flag: stats.dupCount>0});
+
+    var deptCards = DEPARTMENTS.map(function(d){
+      return {label:d.short, num: stats.counts[d.key]||0, flag:false};
+    });
+
+    var volunteerCards = [
+      {label:"Total volunteers", num: stats.volunteerCount, flag:false},
+      {label:"Missing commitment letters", num: stats.missingLetterCount, flag: stats.missingLetterCount>0}
+    ];
+
+    function cardHtml(c){
+      return '<div class="card'+(c.flag?' flag':'')+'"><div class="num">'+c.num+'</div><div class="label">'+c.label+'</div></div>';
+    }
+
+    el.cards.innerHTML =
+      '<div class="cards-heading">Ministries</div>'+
+      '<div class="cards-group">'+overview.map(cardHtml).join("")+'</div>'+
+      '<div class="cards-heading">Departments</div>'+
+      '<div class="cards-group">'+deptCards.map(cardHtml).join("")+'</div>'+
+      '<div class="cards-heading">Volunteers</div>'+
+      '<div class="cards-group">'+volunteerCards.map(cardHtml).join("")+'</div>';
+  }
+
+  // ---------- table ----------
+  function getFilteredPeople(){
+    var list = people;
+    if(currentTab !== "dashboard" && currentTab !== "all"){
+      var t = tabInfo(currentTab);
+      if(t && t.type === "ministry"){
+        list = list.filter(function(p){ return p.ministry === t.info.label; });
+      } else if(t && t.type === "department"){
+        list = list.filter(function(p){ return p.department === t.info.label; });
+      }
+    }
+    if(searchTerm){
+      var s = searchTerm.toLowerCase();
+      list = list.filter(function(p){
+        return (p.name||"").toLowerCase().indexOf(s)>-1 ||
+               (p.phone||"").toLowerCase().indexOf(s)>-1 ||
+               (p.email||"").toLowerCase().indexOf(s)>-1 ||
+               (p.department||"").toLowerCase().indexOf(s)>-1;
+      });
+    }
+    return list.slice().sort(sortComparator);
+  }
+
+  function sortComparator(a, b){
+    switch(currentSort){
+      case "age": {
+        var ageA = computeAge(a.birthday), ageB = computeAge(b.birthday);
+        if(ageA===null && ageB===null) return (a.name||"").localeCompare(b.name||"");
+        if(ageA===null) return 1;
+        if(ageB===null) return -1;
+        return ageA - ageB;
+      }
+      case "ministry": {
+        var miA = ministryInfo(a.ministry), miB = ministryInfo(b.ministry);
+        var idxA = miA ? MINISTRIES.indexOf(miA) : 999, idxB = miB ? MINISTRIES.indexOf(miB) : 999;
+        if(idxA !== idxB) return idxA - idxB;
+        return (a.name||"").localeCompare(b.name||"");
+      }
+      case "department": {
+        var depA = a.department || "", depB = b.department || "";
+        if(!depA && depB) return 1;
+        if(depA && !depB) return -1;
+        if(depA !== depB) return depA.localeCompare(depB);
+        return (a.name||"").localeCompare(b.name||"");
+      }
+      case "newest":
+        return (b.dateAdded||"").localeCompare(a.dateAdded||"");
+      case "oldest":
+        return (a.dateAdded||"").localeCompare(b.dateAdded||"");
+      case "name":
+      default:
+        return (a.name||"").localeCompare(b.name||"");
+    }
+  }
+
+  function renderTable(dupIds){
+    var scrollEl = document.querySelector(".table-scroll");
+    if(scrollEl) scrollEl.scrollLeft = 0;
+    var list = getFilteredPeople();
+    var totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if(currentPage > totalPages) currentPage = totalPages;
+    var start = (currentPage-1)*PAGE_SIZE;
+    var pageItems = list.slice(start, start+PAGE_SIZE);
+
+    if(list.length === 0){
+      el.tbody.innerHTML = "";
+      el.emptyState.classList.remove("hidden");
+      el.emptyState.querySelector("h3").textContent = "No one here yet";
+      el.emptyState.querySelector("div").textContent = "Add a person, or import your existing spreadsheet.";
+    } else {
+      el.emptyState.classList.add("hidden");
+      el.tbody.innerHTML = pageItems.map(function(p){
+        var mi = ministryInfo(p.ministry);
+        var ministryChip = mi ? '<span class="chip '+mi.cls+'">'+mi.short+'</span>' :
+                            p.ministry ? '<span class="chip empty">'+escapeHtml(p.ministry)+'</span>' :
+                            '<span class="chip empty">—</span>';
+        var genderChip = p.gender === "MALE" ? '<span class="chip male">Male</span>' :
+                          p.gender === "FEMALE" ? '<span class="chip female">Female</span>' :
+                          '<span class="chip empty">—</span>';
+        var age = computeAge(p.birthday);
+        var isDup = dupIds.has(p.id);
+        var socialsHtml = p.socials ? '<a href="'+escapeHtml(p.socials)+'" target="_blank" rel="noopener">Facebook</a>' : '—';
+        var di = departmentInfo(p.department);
+        var departmentChip = di ? '<span class="chip '+di.cls+'">'+di.short+'</span>' :
+                              p.department ? '<span class="chip empty">'+escapeHtml(p.department)+'</span>' :
+                              '<span class="chip empty">—</span>';
+        return '<tr class="'+(isDup?'dup':'')+'">'+
+          '<td><div class="name-cell">'+escapeHtml(p.name)+'</div><div class="id-cell">'+p.id+(isDup?' &middot; <span class="dup-tag">Possible duplicate</span>':'')+'</div></td>'+
+          '<td>'+ministryChip+'</td>'+
+          '<td>'+genderChip+'</td>'+
+          '<td>'+fmtDate(p.birthday)+'</td>'+
+          '<td>'+(age===null?'—':age)+'</td>'+
+          '<td>'+(escapeHtml(p.phone)||'—')+'</td>'+
+          '<td>'+(escapeHtml(p.email)||'—')+'</td>'+
+          '<td>'+departmentChip+'</td>'+
+          '<td>'+socialsHtml+'</td>'+
+          '<td>'+(escapeHtml(p.address)||'—')+'</td>'+
+          '<td><div class="row-actions">'+
+            '<button class="icon-btn" data-edit="'+p.id+'">Edit</button>'+
+            '<button class="icon-btn danger" data-del="'+p.id+'">Delete</button>'+
+          '</div></td>'+
+        '</tr>';
+      }).join("");
+    }
+
+    // pagination controls
+    if(list.length <= PAGE_SIZE){
+      el.pagination.innerHTML = '<span>'+list.length+' '+(list.length===1?'person':'people')+'</span><span></span>';
+    } else {
+      el.pagination.innerHTML =
+        '<span>Showing '+(start+1)+'–'+Math.min(start+PAGE_SIZE, list.length)+' of '+list.length+'</span>'+
+        '<span class="pg-btns">'+
+          '<button id="pgPrev" '+(currentPage<=1?'disabled':'')+'>Previous</button>'+
+          '<button id="pgNext" '+(currentPage>=totalPages?'disabled':'')+'>Next</button>'+
+        '</span>';
+      var prevBtn = document.getElementById("pgPrev");
+      var nextBtn = document.getElementById("pgNext");
+      if(prevBtn) prevBtn.addEventListener("click", function(){ currentPage--; renderTable(dupIds); });
+      if(nextBtn) nextBtn.addEventListener("click", function(){ currentPage++; renderTable(dupIds); });
+    }
+
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-edit]"), function(btn){
+      btn.addEventListener("click", function(){ openForm(btn.getAttribute("data-edit")); });
+    });
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-del]"), function(btn){
+      btn.addEventListener("click", function(){ deletePerson(btn.getAttribute("data-del")); });
+    });
+  }
+
+  // ---------- table head swapping ----------
+  var PEOPLE_HEAD_HTML =
+    '<th>Name</th><th>Ministry</th><th>Gender</th><th>Birthday</th><th>Age</th>'+
+    '<th>Phone</th><th>Email</th><th>Department</th><th>Socials</th><th>Address</th><th></th>';
+  var NEWCOMER_HEAD_HTML =
+    '<th>Name</th><th>First Visit</th><th>Days</th><th>Status</th><th>Likely Ministry</th>'+
+    '<th>Phone</th><th>Email</th><th>Notes</th><th></th>';
+  var VOLUNTEER_HEAD_HTML =
+    '<th>Name</th><th>Department</th><th>Ministry</th><th>Phone</th><th>Email</th>'+
+    '<th>Commitment Letter</th><th></th>';
+
+  function renderPeopleTableHead(){
+    if(el.tableHeadRow.getAttribute("data-mode") !== "people"){
+      el.tableHeadRow.innerHTML = PEOPLE_HEAD_HTML;
+      el.tableHeadRow.setAttribute("data-mode","people");
+    }
+  }
+  function renderNewcomerTableHead(){
+    if(el.tableHeadRow.getAttribute("data-mode") !== "newcomers"){
+      el.tableHeadRow.innerHTML = NEWCOMER_HEAD_HTML;
+      el.tableHeadRow.setAttribute("data-mode","newcomers");
+    }
+  }
+  function renderVolunteerTableHead(){
+    if(el.tableHeadRow.getAttribute("data-mode") !== "volunteers"){
+      el.tableHeadRow.innerHTML = VOLUNTEER_HEAD_HTML;
+      el.tableHeadRow.setAttribute("data-mode","volunteers");
+    }
+  }
+
+  // ---------- New People (newcomers) ----------
+  function computeDaysSince(dateStr){
+    if(!dateStr) return null;
+    var d = new Date(dateStr + "T00:00:00");
+    if(isNaN(d.getTime())) return null;
+    var diffMs = Date.now() - d.getTime();
+    return Math.floor(diffMs / (24*60*60*1000));
+  }
+
+  function daysSinceChip(days){
+    if(days === null) return '<span class="chip empty">—</span>';
+    var cls = days <= 30 ? "days-fresh" : days <= 60 ? "days-warm" : days <= 89 ? "days-due" : "days-over";
+    return '<span class="chip '+cls+'">'+days+' days</span>';
+  }
+
+  function statusChipClass(status){
+    if(status === "Contacted") return "status-contacted";
+    if(status === "Followed Up") return "status-followedup";
+    if(status === "Plugged In") return "status-plugged";
+    return "status-notyet";
+  }
+
+  function getFilteredNewcomers(){
+    var list = newcomers;
+    if(searchTerm){
+      var s = searchTerm.toLowerCase();
+      list = list.filter(function(n){
+        return (n.name||"").toLowerCase().indexOf(s)>-1 ||
+               (n.phone||"").toLowerCase().indexOf(s)>-1 ||
+               (n.email||"").toLowerCase().indexOf(s)>-1;
+      });
+    }
+    return list.slice().sort(function(a,b){
+      switch(newcomerSort){
+        case "newest": return (b.visitDate||"").localeCompare(a.visitDate||"");
+        case "oldest": return (a.visitDate||"").localeCompare(b.visitDate||"");
+        case "status": return (a.status||"").localeCompare(b.status||"");
+        case "name":
+        default: return (a.name||"").localeCompare(b.name||"");
+      }
+    });
+  }
+
+  function renderNewcomersTable(){
+    var scrollEl = document.querySelector(".table-scroll");
+    if(scrollEl) scrollEl.scrollLeft = 0;
+    var list = getFilteredNewcomers();
+
+    if(list.length === 0){
+      el.tbody.innerHTML = "";
+      el.emptyState.classList.remove("hidden");
+      el.emptyState.querySelector("h3").textContent = "No newcomers being tracked";
+      el.emptyState.querySelector("div").textContent = "Add someone who visited recently to start tracking their first 3 months.";
+    } else {
+      el.emptyState.classList.add("hidden");
+      el.tbody.innerHTML = list.map(function(n){
+        var days = computeDaysSince(n.visitDate);
+        var mi = ministryInfo(n.ministry);
+        var ministryChip = mi ? '<span class="chip '+mi.cls+'">'+mi.short+'</span>' : '<span class="chip empty">—</span>';
+        var statusOptions = ["Not yet contacted","Contacted","Followed Up","Plugged In"].map(function(s){
+          return '<option value="'+s+'" '+(n.status===s?'selected':'')+'>'+s+'</option>';
+        }).join("");
+        var ncAge = computeAge(n.birthday);
+        var nameSub = ncAge !== null ? '<div class="id-cell">'+ncAge+' yrs old</div>' : '';
+        var emailLine = n.email ? '<a href="mailto:'+escapeHtml(n.email)+'">'+escapeHtml(n.email)+'</a>' : '—';
+        if(n.socials) emailLine += '<div><a href="'+escapeHtml(n.socials)+'" target="_blank" rel="noopener">Facebook</a></div>';
+        return '<tr>'+
+          '<td><div class="name-cell">'+escapeHtml(n.name)+'</div>'+nameSub+'</td>'+
+          '<td>'+fmtDate(n.visitDate)+'</td>'+
+          '<td>'+daysSinceChip(days)+'</td>'+
+          '<td><select class="search" style="width:auto;font-size:12.5px;padding:5px 8px;" data-status="'+n.id+'">'+statusOptions+'</select></td>'+
+          '<td>'+ministryChip+'</td>'+
+          '<td>'+(n.phone ? '<a href="tel:'+escapeHtml(n.phone)+'">'+escapeHtml(n.phone)+'</a> &middot; <a href="sms:'+escapeHtml(n.phone)+'">Text</a>' : '—')+'</td>'+
+          '<td>'+emailLine+'</td>'+
+          '<td style="max-width:220px;white-space:normal;">'+(escapeHtml(n.notes)||'—')+'</td>'+
+          '<td><div class="row-actions">'+
+            '<button class="icon-btn" data-edit-nc="'+n.id+'">Edit</button>'+
+            '<button class="icon-btn danger" data-del-nc="'+n.id+'">Delete</button>'+
+          '</div></td>'+
+        '</tr>';
+      }).join("");
+    }
+
+    el.pagination.innerHTML = '<span>'+list.length+' '+(list.length===1?'newcomer':'newcomers')+' being tracked</span><span></span>';
+
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-edit-nc]"), function(btn){
+      btn.addEventListener("click", function(){ openNewcomerForm(btn.getAttribute("data-edit-nc")); });
+    });
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-del-nc]"), function(btn){
+      btn.addEventListener("click", function(){ deleteNewcomer(btn.getAttribute("data-del-nc")); });
+    });
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-status]"), function(sel){
+      var originalValue = sel.value;
+      sel.addEventListener("change", function(){
+        var id = sel.getAttribute("data-status");
+        var newVal = sel.value;
+        if(newVal === "Plugged In"){
+          if(!confirm("Mark as Plugged In and move this person into the main database now?")){
+            sel.value = originalValue;
+            return;
+          }
+          promoteNewcomer(id).catch(function(err){
+            console.error(err);
+            alert("Could not move this person to the main database. Please try again.");
+          });
+        } else {
+          var n = newcomers.filter(function(x){return x.id===id;})[0];
+          if(!n) return;
+          setDoc(doc(db, "newcomers", id), Object.assign({}, n, {status:newVal})).catch(function(err){
+            console.error(err);
+          });
+        }
+      });
+    });
+  }
+
+  function openNewcomerForm(id){
+    editingNewcomerId = id || null;
+    if(id){
+      var n = newcomers.filter(function(x){return x.id===id;})[0];
+      if(!n) return;
+      el.newcomerFormTitle.textContent = "Edit newcomer";
+      document.getElementById("nc_id").value = n.id;
+      document.getElementById("nc_name").value = n.name||"";
+      document.getElementById("nc_visitDate").value = n.visitDate||"";
+      document.getElementById("nc_ministry").value = n.ministry||"";
+      document.getElementById("nc_phone").value = n.phone||"";
+      document.getElementById("nc_email").value = n.email||"";
+      document.getElementById("nc_birthday").value = n.birthday||"";
+      document.getElementById("nc_socials").value = n.socials||"";
+      document.getElementById("nc_status").value = n.status||"Not yet contacted";
+      document.getElementById("nc_notes").value = n.notes||"";
+    } else {
+      el.newcomerFormTitle.textContent = "Add newcomer";
+      el.newcomerForm.reset();
+      document.getElementById("nc_id").value = "";
+      document.getElementById("nc_visitDate").value = new Date().toISOString().slice(0,10);
+      document.getElementById("nc_status").value = "Not yet contacted";
+    }
+    el.newcomerFormOverlay.classList.remove("hidden");
+    document.getElementById("nc_name").focus();
+  }
+
+  function closeNewcomerForm(){
+    el.newcomerFormOverlay.classList.add("hidden");
+    editingNewcomerId = null;
+  }
+
+  async function deleteNewcomer(id){
+    var n = newcomers.filter(function(x){return x.id===id;})[0];
+    if(!n) return;
+    if(!confirm('Remove "'+n.name+'" from New People tracking? This does not add them to the main database.')) return;
+    try{
+      await deleteDoc(doc(db, "newcomers", id));
+    }catch(e){
+      console.error(e);
+      alert("Could not delete. Please try again.");
+    }
+  }
+
+  function nextNewcomerId(){
+    var max = 0;
+    newcomers.forEach(function(n){
+      var m = parseInt((n.id||"").replace(/\D/g,""), 10);
+      if(!isNaN(m) && m > max) max = m;
+    });
+    return "N" + String(max+1).padStart(4,"0");
+  }
+
+  el.newcomerForm.addEventListener("submit", async function(e){
+    e.preventDefault();
+    var id = document.getElementById("nc_id").value || null;
+    var status = document.getElementById("nc_status").value;
+    var data = {
+      id: id || nextNewcomerId(),
+      name: document.getElementById("nc_name").value.trim(),
+      visitDate: document.getElementById("nc_visitDate").value,
+      ministry: document.getElementById("nc_ministry").value,
+      phone: document.getElementById("nc_phone").value.trim(),
+      email: document.getElementById("nc_email").value.trim(),
+      birthday: document.getElementById("nc_birthday").value,
+      socials: document.getElementById("nc_socials").value.trim(),
+      status: status,
+      notes: document.getElementById("nc_notes").value.trim(),
+      dateAdded: id ? ((newcomers.filter(function(x){return x.id===id;})[0]||{}).dateAdded || new Date().toISOString()) : new Date().toISOString()
+    };
+    if(!data.name){ alert("Please enter a name."); return; }
+
+    var submitBtn = document.getElementById("newcomerFormSubmit");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+    try{
+      await setDoc(doc(db, "newcomers", data.id), data);
+      closeNewcomerForm();
+      if(status === "Plugged In"){
+        await promoteNewcomer(data.id);
+      }
+    }catch(err){
+      console.error(err);
+      alert("Could not save. Please check your connection and try again.");
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Save";
+  });
+
+  el.newcomerFormClose.addEventListener("click", closeNewcomerForm);
+  el.newcomerFormCancel.addEventListener("click", closeNewcomerForm);
+  el.newcomerFormOverlay.addEventListener("click", function(e){ if(e.target===el.newcomerFormOverlay) closeNewcomerForm(); });
+
+  // Promote a newcomer into the main People database. Transaction-safe: if two
+  // clients race (e.g. auto-promotion firing on two open devices at once), only
+  // one will find the newcomer doc still present and perform the promotion.
+  async function promoteNewcomer(newcomerId){
+    var startNum = await reserveIdBlock(1);
+    var newPersonId = "P" + String(startNum).padStart(4,"0");
+    var newcomerRef = doc(db, "newcomers", newcomerId);
+    var personRef = doc(db, "people", newPersonId);
+    return runTransaction(db, async function(tx){
+      var snap = await tx.get(newcomerRef);
+      if(!snap.exists()){ return {skipped:true}; }
+      var n = snap.data();
+      var personData = {
+        id: newPersonId,
+        ministry: n.ministry || "",
+        department: "",
+        name: n.name,
+        gender: n.gender || "",
+        birthday: n.birthday || "",
+        phone: n.phone || "",
+        email: n.email || "",
+        socials: n.socials || "",
+        address: "",
+        dateAdded: n.visitDate || new Date().toISOString().slice(0,10)
+      };
+      tx.set(personRef, personData);
+      tx.delete(newcomerRef);
+      return {skipped:false, personId:newPersonId};
+    });
+  }
+
+  async function checkAutoPromotions(){
+    var cutoffDays = AUTO_PROMOTE_DAYS;
+    for(var i=0;i<newcomers.length;i++){
+      var n = newcomers[i];
+      if(!n.visitDate) continue;
+      var days = computeDaysSince(n.visitDate);
+      if(days !== null && days >= cutoffDays && !promotionInFlight[n.id]){
+        promotionInFlight[n.id] = true;
+        try{ await promoteNewcomer(n.id); }
+        catch(e){ console.error("Auto-promotion failed for", n.id, e); }
+        finally{ delete promotionInFlight[n.id]; }
+      }
+    }
+  }
+
+  // ---------- Volunteers (anyone with a Department) ----------
+  function getFilteredVolunteers(){
+    var list = people.filter(function(p){ return !!p.department; });
+    if(searchTerm){
+      var s = searchTerm.toLowerCase();
+      list = list.filter(function(p){
+        return (p.name||"").toLowerCase().indexOf(s)>-1 ||
+               (p.phone||"").toLowerCase().indexOf(s)>-1 ||
+               (p.email||"").toLowerCase().indexOf(s)>-1 ||
+               (p.department||"").toLowerCase().indexOf(s)>-1;
+      });
+    }
+    return list.slice().sort(function(a,b){
+      switch(volunteerSort){
+        case "name": return (a.name||"").localeCompare(b.name||"");
+        case "department": {
+          var da = a.department||"", db = b.department||"";
+          return da === db ? (a.name||"").localeCompare(b.name||"") : da.localeCompare(db);
+        }
+        case "missing":
+        default: {
+          var ma = a.commitmentLetter ? 1 : 0, mb = b.commitmentLetter ? 1 : 0;
+          if(ma !== mb) return ma - mb; // missing (0) sorts before on-file (1)
+          return (a.name||"").localeCompare(b.name||"");
+        }
+      }
+    });
+  }
+
+  function renderVolunteersTable(){
+    var scrollEl = document.querySelector(".table-scroll");
+    if(scrollEl) scrollEl.scrollLeft = 0;
+    var list = getFilteredVolunteers();
+
+    if(list.length === 0){
+      el.tbody.innerHTML = "";
+      el.emptyState.classList.remove("hidden");
+      el.emptyState.querySelector("h3").textContent = "No volunteers yet";
+      el.emptyState.querySelector("div").textContent = "Anyone assigned a Department shows up here automatically.";
+    } else {
+      el.emptyState.classList.add("hidden");
+      el.tbody.innerHTML = list.map(function(p){
+        var di = departmentInfo(p.department);
+        var departmentChip = di ? '<span class="chip '+di.cls+'">'+di.short+'</span>' :
+                              '<span class="chip empty">'+escapeHtml(p.department)+'</span>';
+        var mi = ministryInfo(p.ministry);
+        var ministryChip = mi ? '<span class="chip '+mi.cls+'">'+mi.short+'</span>' : '<span class="chip empty">—</span>';
+        var letterChip = p.commitmentLetter ?
+          '<span class="chip letter-yes">On file</span>' :
+          '<span class="chip letter-no">Missing</span>';
+        return '<tr>'+
+          '<td><div class="name-cell">'+escapeHtml(p.name)+'</div><div class="id-cell">'+p.id+'</div></td>'+
+          '<td>'+departmentChip+'</td>'+
+          '<td>'+ministryChip+'</td>'+
+          '<td>'+(escapeHtml(p.phone)||'—')+'</td>'+
+          '<td>'+(escapeHtml(p.email)||'—')+'</td>'+
+          '<td>'+letterChip+' <button class="icon-btn" data-toggle-letter="'+p.id+'">'+(p.commitmentLetter?'Mark missing':'Mark on file')+'</button></td>'+
+          '<td><div class="row-actions"><button class="icon-btn" data-edit="'+p.id+'">Edit</button></div></td>'+
+        '</tr>';
+      }).join("");
+    }
+
+    el.pagination.innerHTML = '<span>'+list.length+' '+(list.length===1?'volunteer':'volunteers')+'</span><span></span>';
+
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-edit]"), function(btn){
+      btn.addEventListener("click", function(){ openForm(btn.getAttribute("data-edit")); });
+    });
+    Array.prototype.forEach.call(el.tbody.querySelectorAll("[data-toggle-letter]"), function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-toggle-letter");
+        var p = people.filter(function(x){return x.id===id;})[0];
+        if(!p) return;
+        btn.disabled = true;
+        setDoc(doc(db, "people", id), Object.assign({}, p, {commitmentLetter: !p.commitmentLetter}))
+          .catch(function(err){ console.error(err); alert("Could not update. Please try again."); })
+          .finally(function(){ btn.disabled = false; });
+      });
+    });
+  }
+
+  function render(){
+    var stats = buildNav();
+    var dupIds = computeDuplicateIds();
+
+    var titles = {
+      dashboard:["Dashboard","Live counts across the whole congregation."],
+      newpeople:["New People","Visitors from the last 3 months. Plugged In moves them into the main database."],
+      all:["All people","Every record in one list."],
+      volunteers:["Volunteers","Anyone with a Department assigned, and whether their commitment letter is on file."]
+    };
+    MINISTRIES.forEach(function(m){
+      titles[m.key] = [m.short, "Members of the "+m.label+" ministry."];
+    });
+    DEPARTMENTS.forEach(function(d){
+      titles[d.key] = [d.short, "People serving in "+d.label+"."];
+    });
+    var t = titles[currentTab] || titles.all;
+    el.viewTitle.textContent = t[0];
+    el.viewSub.textContent = t[1];
+
+    el.addBtn.textContent = currentTab === "newpeople" ? "+ Add newcomer" : "+ Add person";
+    el.addBtn.classList.toggle("hidden", currentTab === "volunteers");
+    el.importBtn.classList.toggle("hidden", currentTab === "newpeople" || currentTab === "volunteers");
+    syncSortSelectOptions();
+
+    if(currentTab === "newpeople"){
+      el.cards.innerHTML = "";
+      renderNewcomerTableHead();
+      renderNewcomersTable();
+    } else if(currentTab === "volunteers"){
+      el.cards.innerHTML = "";
+      renderVolunteerTableHead();
+      renderVolunteersTable();
+    } else {
+      renderPeopleTableHead();
+      renderCards(stats);
+      renderTable(dupIds);
+    }
+  }
+
+  // ---------- add/edit form ----------
+  function openForm(id){
+    editingId = id || null;
+    el.dupWarning.classList.remove("show");
+    el.dupWarning.innerHTML = "";
+    if(id){
+      var p = people.filter(function(x){return x.id===id;})[0];
+      if(!p) return;
+      el.formTitle.textContent = "Edit person";
+      document.getElementById("f_id").value = p.id;
+      document.getElementById("f_ministry").value = p.ministry||"";
+      document.getElementById("f_department").value = p.department||"";
+      document.getElementById("f_name").value = p.name||"";
+      document.getElementById("f_gender").value = p.gender||"";
+      document.getElementById("f_birthday").value = p.birthday||"";
+      document.getElementById("f_phone").value = p.phone||"";
+      document.getElementById("f_email").value = p.email||"";
+      document.getElementById("f_socials").value = p.socials||"";
+      document.getElementById("f_address").value = p.address||"";
+      document.getElementById("f_commitmentLetter").checked = !!p.commitmentLetter;
+      updateAgeDisplay();
+    } else {
+      el.formTitle.textContent = "Add person";
+      el.personForm.reset();
+      document.getElementById("f_id").value = "";
+      document.getElementById("f_commitmentLetter").checked = false;
+      updateAgeDisplay();
+    }
+    el.formOverlay.classList.remove("hidden");
+    document.getElementById("f_name").focus();
+  }
+
+  function updateAgeDisplay(){
+    var bday = document.getElementById("f_birthday").value;
+    var age = computeAge(bday);
+    document.getElementById("f_age").value = age === null ? "" : age + " years old";
+  }
+  document.getElementById("f_birthday").addEventListener("input", updateAgeDisplay);
+
+  function closeForm(){
+    el.formOverlay.classList.add("hidden");
+    editingId = null;
+  }
+
+  async function deletePerson(id){
+    var p = people.filter(function(x){return x.id===id;})[0];
+    if(!p) return;
+    if(!confirm('Delete "'+p.name+'" from the directory? This cannot be undone.')) return;
+    try{
+      await removePerson(id);
+    }catch(e){
+      console.error(e);
+      alert("Could not delete. Please try again.");
+    }
+    // UI updates automatically via the live sync listener.
+  }
+
+  el.personForm.addEventListener("submit", async function(e){
+    e.preventDefault();
+    var id = document.getElementById("f_id").value || null;
+    var existing = id ? people.filter(function(x){return x.id===id;})[0] : null;
+    var draft = {
+      ministry: document.getElementById("f_ministry").value,
+      department: document.getElementById("f_department").value,
+      name: document.getElementById("f_name").value.trim(),
+      gender: document.getElementById("f_gender").value,
+      birthday: document.getElementById("f_birthday").value,
+      phone: document.getElementById("f_phone").value.trim(),
+      email: document.getElementById("f_email").value.trim(),
+      socials: document.getElementById("f_socials").value.trim(),
+      address: document.getElementById("f_address").value.trim(),
+      commitmentLetter: document.getElementById("f_commitmentLetter").checked,
+      dateAdded: existing ? (existing.dateAdded || new Date().toISOString()) : new Date().toISOString()
+    };
+
+    if(!draft.name){
+      alert("Please enter a name.");
+      return;
+    }
+
+    var dup = findDuplicateOf(draft.name, draft.email, id);
+    if(dup && !el.dupWarning.classList.contains("show")){
+      el.dupWarning.innerHTML = '<strong>Possible duplicate.</strong> "'+escapeHtml(dup.name)+'" ('+dup.id+') already has this name and email. ' +
+        'Review the existing record, or click Save again to add this one anyway.';
+      el.dupWarning.classList.add("show");
+      return; // require a second submit to confirm
+    }
+
+    var submitBtn = document.getElementById("formSubmit");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+    try{
+      if(id){
+        draft.id = id;
+        await savePerson(draft);
+      } else {
+        var startNum = await reserveIdBlock(1);
+        draft.id = "P" + String(startNum).padStart(4,"0");
+        await savePerson(draft);
+      }
+      closeForm();
+    }catch(err){
+      console.error(err);
+      alert("Could not save. Please check your connection and try again.");
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Save person";
+  });
+
+  // ---------- import ----------
+  function openImport(){
+    el.importText.value = "";
+    el.importResult.classList.remove("show");
+    el.importResult.innerHTML = "";
+    el.importOverlay.classList.remove("hidden");
+  }
+  function closeImport(){ el.importOverlay.classList.add("hidden"); }
+
+  async function runImport(){
+    var raw = el.importText.value;
+    if(!raw.trim()){ closeImport(); return; }
+    var lines = raw.split("\n").map(function(l){return l.replace(/\r$/,"");}).filter(function(l){return l.trim()!=="";});
+    var added=0, skipped=0, flaggedDup=0;
+    var records = [];
+    lines.forEach(function(line){
+      var cols = line.split("\t");
+      if(cols.length < 2) { cols = line.split(","); }
+      var ministry = (cols[0]||"").trim();
+      var name = (cols[1]||"").trim();
+      var gender = (cols[2]||"").trim().toUpperCase();
+      var birthday = (cols[3]||"").trim();
+      // cols[4] = Age column from sheet export, ignored (auto-computed)
+      var phone = (cols[5]||"").trim();
+      var email = (cols[6]||"").trim();
+      var department = (cols[7]||"").trim();
+      var socials = (cols[8]||"").trim();
+      var address = (cols[9]||"").trim();
+
+      if(!name || /^name$/i.test(name)){ skipped++; return; } // skip blank rows / header row
+      if(birthday && !/^\d{4}-\d{2}-\d{2}$/.test(birthday)){
+        var d = new Date(birthday);
+        birthday = isNaN(d.getTime()) ? "" : d.toISOString().slice(0,10);
+      }
+      var mi = ministryInfo(ministry);
+      var record = {
+        ministry: mi ? mi.label : "",
+        department: department,
+        name: name,
+        gender: (gender==="MALE"||gender==="FEMALE") ? gender : "",
+        birthday: birthday,
+        phone: phone,
+        email: email,
+        socials: socials,
+        address: address,
+        dateAdded: new Date().toISOString()
+      };
+      if(findDuplicateOf(record.name, record.email, null)) flaggedDup++;
+      records.push(record);
+      added++;
+    });
+
+    if(records.length === 0){
+      el.importResult.innerHTML = "Nothing to import."+(skipped? " Skipped "+skipped+" blank/header row(s)." : "");
+      el.importResult.classList.add("show");
+      return;
+    }
+
+    el.importRun.disabled = true;
+    el.importRun.textContent = "Importing...";
+    try{
+      var startNum = await reserveIdBlock(records.length);
+      records.forEach(function(r, i){ r.id = "P" + String(startNum + i).padStart(4,"0"); });
+
+      var CHUNK = 300; // Firestore caps batches at 500 writes and ~10MB; 300 leaves headroom for long URLs
+      var committed = 0;
+      for(var i=0; i<records.length; i+=CHUNK){
+        var chunk = records.slice(i, i+CHUNK);
+        var batch = writeBatch(db);
+        chunk.forEach(function(r){ batch.set(doc(db,"people", r.id), r); });
+        try{
+          await batch.commit();
+          committed += chunk.length;
+          el.importResult.innerHTML = "Importing... <strong>"+committed+"</strong> of "+records.length+" saved.";
+          el.importResult.classList.add("show");
+        }catch(batchErr){
+          console.error("Batch failed at record "+(committed+1), batchErr);
+          var failedFrom = records[committed];
+          el.importResult.innerHTML =
+            "<strong>Import stopped partway.</strong> <strong>"+committed+"</strong> of "+records.length+
+            " people were saved successfully and are safe."+
+            (failedFrom ? " It stopped at <strong>"+escapeHtml(failedFrom.name)+"</strong>." : "")+
+            " Re-run the import with only the remaining rows (starting from that person) so you don't create duplicates.";
+          el.importResult.classList.add("show");
+          el.importRun.disabled = false;
+          el.importRun.textContent = "Import rows";
+          return;
+        }
+      }
+      el.importResult.innerHTML = "Imported <strong>"+added+"</strong> "+(added===1?"person":"people")+"."+
+        (skipped? " Skipped "+skipped+" blank/header row(s)." : "")+
+        (flaggedDup? " <strong>"+flaggedDup+"</strong> matched an existing name+email and are flagged as possible duplicates in the list." : "");
+    }catch(err){
+      console.error(err);
+      el.importResult.innerHTML = "Import failed before any rows were saved. Please check your connection and try again.";
+    }
+    el.importRun.disabled = false;
+    el.importRun.textContent = "Import rows";
+    el.importResult.classList.add("show");
+  }
+
+  // ---------- wiring ----------
+  el.addBtn.addEventListener("click", function(){
+    if(currentTab === "newpeople") openNewcomerForm(null);
+    else openForm(null);
+  });
+  el.formClose.addEventListener("click", closeForm);
+  el.formCancel.addEventListener("click", closeForm);
+  el.formOverlay.addEventListener("click", function(e){ if(e.target===el.formOverlay) closeForm(); });
+
+  el.importBtn.addEventListener("click", openImport);
+  el.importClose.addEventListener("click", closeImport);
+  el.importCancel.addEventListener("click", closeImport);
+  el.importOverlay.addEventListener("click", function(e){ if(e.target===el.importOverlay) closeImport(); });
+  el.importRun.addEventListener("click", runImport);
+
+  el.searchInput.addEventListener("input", function(){
+    searchTerm = el.searchInput.value.trim();
+    currentPage = 1;
+    if(currentTab === "newpeople") renderNewcomersTable();
+    else if(currentTab === "volunteers") renderVolunteersTable();
+    else renderTable(computeDuplicateIds());
+  });
+
+  var PEOPLE_SORT_HTML =
+    '<option value="name">Sort: Alphabetical (A–Z)</option>'+
+    '<option value="age">Sort: Age (youngest–oldest)</option>'+
+    '<option value="ministry">Sort: Ministry</option>'+
+    '<option value="department">Sort: Department</option>'+
+    '<option value="newest">Sort: Newest added</option>'+
+    '<option value="oldest">Sort: Oldest added</option>';
+  var NEWCOMER_SORT_HTML =
+    '<option value="oldest">Sort: Longest waiting first</option>'+
+    '<option value="newest">Sort: Most recent visit first</option>'+
+    '<option value="name">Sort: Alphabetical (A–Z)</option>'+
+    '<option value="status">Sort: Status</option>';
+  var VOLUNTEER_SORT_HTML =
+    '<option value="missing">Sort: Missing letters first</option>'+
+    '<option value="name">Sort: Alphabetical (A–Z)</option>'+
+    '<option value="department">Sort: Department</option>';
+
+  function sortModeFor(tab){
+    if(tab === "newpeople") return "newcomers";
+    if(tab === "volunteers") return "volunteers";
+    return "people";
+  }
+
+  function syncSortSelectOptions(){
+    var wantMode = sortModeFor(currentTab);
+    var isMode = el.sortSelect.getAttribute("data-mode");
+    if(wantMode === isMode) return;
+    if(wantMode === "newcomers"){
+      el.sortSelect.innerHTML = NEWCOMER_SORT_HTML;
+      el.sortSelect.value = newcomerSort;
+    } else if(wantMode === "volunteers"){
+      el.sortSelect.innerHTML = VOLUNTEER_SORT_HTML;
+      el.sortSelect.value = volunteerSort;
+    } else {
+      el.sortSelect.innerHTML = PEOPLE_SORT_HTML;
+      el.sortSelect.value = currentSort;
+    }
+    el.sortSelect.setAttribute("data-mode", wantMode);
+  }
+
+  el.sortSelect.addEventListener("change", function(){
+    var mode = sortModeFor(currentTab);
+    if(mode === "newcomers"){
+      newcomerSort = el.sortSelect.value;
+      renderNewcomersTable();
+    } else if(mode === "volunteers"){
+      volunteerSort = el.sortSelect.value;
+      renderVolunteersTable();
+    } else {
+      currentSort = el.sortSelect.value;
+      currentPage = 1;
+      renderTable(computeDuplicateIds());
+    }
+  });
+
+  render(); // initial paint (empty) while auth/snapshot resolve
+})();
+</script>
+</body>
+</html>
